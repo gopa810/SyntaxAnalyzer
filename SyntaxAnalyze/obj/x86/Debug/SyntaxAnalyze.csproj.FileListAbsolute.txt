@@ -1,0 +1,7 @@
+c:\users\peter.kollath\documents\visual studio 2010\Projects\SyntaxAnalyze\SyntaxAnalyze\obj\x86\Debug\SyntaxAnalyze.Form1.resources
+c:\users\peter.kollath\documents\visual studio 2010\Projects\SyntaxAnalyze\SyntaxAnalyze\obj\x86\Debug\SyntaxAnalyze.Properties.Resources.resources
+c:\users\peter.kollath\documents\visual studio 2010\Projects\SyntaxAnalyze\SyntaxAnalyze\obj\x86\Debug\SyntaxAnalyze.csproj.GenerateResource.Cache
+c:\users\peter.kollath\documents\visual studio 2010\Projects\SyntaxAnalyze\SyntaxAnalyze\bin\Debug\SyntaxAnalyze.exe
+c:\users\peter.kollath\documents\visual studio 2010\Projects\SyntaxAnalyze\SyntaxAnalyze\bin\Debug\SyntaxAnalyze.pdb
+c:\users\peter.kollath\documents\visual studio 2010\Projects\SyntaxAnalyze\SyntaxAnalyze\obj\x86\Debug\SyntaxAnalyze.exe
+c:\users\peter.kollath\documents\visual studio 2010\Projects\SyntaxAnalyze\SyntaxAnalyze\obj\x86\Debug\SyntaxAnalyze.pdb
