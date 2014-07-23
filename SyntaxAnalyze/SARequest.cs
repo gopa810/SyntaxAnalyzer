@@ -11,5 +11,7 @@ namespace SyntaxAnalyze
         public string InputFileText { get; set; }
 
         public SAGrammar Grammar { get; set; }
+
+        public SAParseTreeNode OutputTree { get; set; }
     }
 }

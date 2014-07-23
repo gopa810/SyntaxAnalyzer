@@ -9,8 +9,18 @@ namespace SyntaxAnalyze
     {
         public SAGrammarItemType Type;
         public string Value;
-        public UInt32 MinOccurences = 1;
-        public UInt32 MaxOccurences = 1;
+        public int MinOccurences = 1;
+        public int MaxOccurences = 1;
+
+        public SAGrammarSymbol()
+        {
+        }
+
+        public SAGrammarSymbol(string title, SAGrammarItemType tp)
+        {
+            Value = title;
+            Type = tp;
+        }
     }
 }
 

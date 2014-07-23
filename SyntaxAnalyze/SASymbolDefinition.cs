@@ -9,6 +9,8 @@ namespace SyntaxAnalyze
     {
         public List<List<SAGrammarSymbol>> Lines = new List<List<SAGrammarSymbol>>();
 
+        private SAGrammarSymbol lastItem = null;
+
         public void AddItem(string str, SAGrammarItemType type)
         {
             if (type == SAGrammarItemType.Operator)
@@ -24,6 +26,7 @@ namespace SyntaxAnalyze
                 SAGrammarSymbol item = new SAGrammarSymbol();
                 item.Type = type;
                 item.Value = str;
+                lastItem = item;
 
                 List<SAGrammarSymbol> line = null;
                 if (Lines.Count == 0)
@@ -40,6 +43,15 @@ namespace SyntaxAnalyze
                 {
                     line.Add(item);
                 }
+            }
+        }
+
+        internal void SetMinMaxForLastItem(int p, int p_2)
+        {
+            if (lastItem != null)
+            {
+                lastItem.MinOccurences = p;
+                lastItem.MaxOccurences = p_2;
             }
         }
     }

@@ -60,6 +60,7 @@
     <Compile Include="SAGrammarOperator.cs" />
     <Compile Include="SAGrammarSymbol.cs" />
     <Compile Include="SAOperatorType.cs" />
+    <Compile Include="SAParseTreeNode.cs" />
     <Compile Include="SARequest.cs" />
     <Compile Include="SASymbolDefinition.cs" />
     <Compile Include="SASymbolType.cs" />

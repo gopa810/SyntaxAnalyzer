@@ -13,7 +13,8 @@ namespace SyntaxAnalyze
         ReadingChar,
         ReadingCharAfterEscape,
         ReadingString,
-        ReadingStringAfterEscape
+        ReadingStringAfterEscape,
+        ReadingCommand
     }
 
     public enum SAGrammarItemType

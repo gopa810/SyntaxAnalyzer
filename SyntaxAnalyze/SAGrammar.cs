@@ -8,6 +8,7 @@ namespace SyntaxAnalyze
     public class SAGrammar
     {
         public Dictionary<string, SASymbolDefinition> Symbols = new Dictionary<string, SASymbolDefinition>();
+        public String MainNode { get; set; }
 
         public SAGrammarParseMode parseMode = SAGrammarParseMode.Waiting;
         public SASymbolDefinition parsedItem = null;
