@@ -25,6 +25,7 @@ namespace SyntaxAnalyze
             request.GrammarText = richTextBox1.Text;
             request.InputFileText = richTextBox2.Text;
 
+            richTextBox3.Text = "";
             if (engine.Process(request))
             {
             }
@@ -32,13 +33,35 @@ namespace SyntaxAnalyze
             treeView2.Nodes.Clear();
             ShowOutputTree(treeView2.Nodes, request.OutputTree);
             treeView2.ExpandAll();
+
+            if (engine.parsedLength < request.InputFileText.Length)
+            {
+                richTextBox3.AppendText("Parsing has stopped at position " + engine.parsedLength + "\n");
+                richTextBox3.AppendText("-------------------------\n");
+                richTextBox3.AppendText(request.InputFileText.Substring(engine.parsedLength));
+            }
         }
 
         public void ShowOutputTree(TreeNodeCollection nodes, SAParseTreeNode tn)
         {
             if (!tn.Valid)
                 return;
-            TreeNode nn = nodes.Add(tn.Value + "(" + tn.Symbol.Value + ")");
+            string nodeName;
+            if (tn.Symbol.Type == SAGrammarItemType.Identifier)
+            {
+
+                nodeName = tn.Symbol.Value;
+                if (tn.TextValue != null && tn.TextValue.Length > 0)
+                {
+                    nodeName += " => " + tn.TextValue;
+                }
+            }
+            else
+            {
+                nodeName = tn.Value;
+            }
+
+            TreeNode nn = nodes.Add(nodeName);
             foreach (SAParseNodeLine nl in tn.Lines)
             {
                 //TreeNode lineNode = nn.Nodes.Add("line (lastpos=" + nl.LastPosition + ")");

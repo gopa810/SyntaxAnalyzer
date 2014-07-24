@@ -14,7 +14,9 @@ namespace SyntaxAnalyze
         ReadingCharAfterEscape,
         ReadingString,
         ReadingStringAfterEscape,
-        ReadingCommand
+        ReadingCommand,
+        ReadingUnicodeChar,
+        ReadingUnicodeString
     }
 
     public enum SAGrammarItemType

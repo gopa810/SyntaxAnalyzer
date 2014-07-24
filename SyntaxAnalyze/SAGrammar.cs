@@ -9,10 +9,52 @@ namespace SyntaxAnalyze
     {
         public Dictionary<string, SASymbolDefinition> Symbols = new Dictionary<string, SASymbolDefinition>();
         public String MainNode { get; set; }
+        public List<String> PropagateNodes = new List<string>();
+        public Dictionary<string, HashSet<string>> RemoveNodes = new Dictionary<string, HashSet<string>>();
+        public Dictionary<string, HashSet<string>> JointextNodes = new Dictionary<string, HashSet<string>>();
 
         public SAGrammarParseMode parseMode = SAGrammarParseMode.Waiting;
         public SASymbolDefinition parsedItem = null;
         public SAGrammarItemType cachedItemType;
         public string cachedItem;
+
+        public SASymbolDefinition getSymbolDefinition(string symbolName)
+        {
+            if (Symbols.ContainsKey(symbolName))
+            {
+                return Symbols[symbolName];
+            }
+            else
+            {
+                throw new Exception("Cannot find definition for symbol " + symbolName + " in grammar.");
+            }
+        }
+
+        public void addRemoveNodes(string parent, string child)
+        {
+            if (RemoveNodes.ContainsKey(parent))
+            {
+                RemoveNodes[parent].Add(child);
+            }
+            else
+            {
+                HashSet<string> s = new HashSet<string>();
+                s.Add(child);
+                RemoveNodes.Add(parent, s);
+            }
+        }
+        public void addJointextNodes(string parent, string child)
+        {
+            if (JointextNodes.ContainsKey(parent))
+            {
+                JointextNodes[parent].Add(child);
+            }
+            else
+            {
+                HashSet<string> s = new HashSet<string>();
+                s.Add(child);
+                JointextNodes.Add(parent, s);
+            }
+        }
     }
 }

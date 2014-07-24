@@ -15,6 +15,8 @@ namespace SyntaxAnalyze
     public class SAEngine
     {
         private SARequest inputData = null;
+        private int logLevel = 0;
+        public int parsedLength = 0;
 
         public SARequest Request
         {
@@ -39,11 +41,18 @@ namespace SyntaxAnalyze
             return true;
         }
 
+        public void printLogLevel()
+        {
+            Debugger.Log(0, "", "".PadLeft(logLevel));
+        }
+
         public SAGrammar ConvertTextToGrammar(string str)
         {
             SAGrammmarAnalyzeMode mode = SAGrammmarAnalyzeMode.Waiting;
             StringBuilder symbol = new StringBuilder();
             SAGrammar grammar = new SAGrammar();
+            int unicodeCharsCounter = 0;
+            StringBuilder unicodeValue = new StringBuilder();
 
             foreach (char c in str)
             {
@@ -174,12 +183,60 @@ namespace SyntaxAnalyze
                 else if (mode == SAGrammmarAnalyzeMode.ReadingCharAfterEscape)
                 {
                     if (c == 'n')
+                    {
                         symbol.Append('\n');
+                        mode = SAGrammmarAnalyzeMode.ReadingChar;
+                    }
                     else if (c == 't')
+                    {
                         symbol.Append('\t');
+                        mode = SAGrammmarAnalyzeMode.ReadingChar;
+                    }
+                    else if (c == 'u')
+                    {
+                        unicodeCharsCounter = 4;
+                        unicodeValue.Clear();
+                        mode = SAGrammmarAnalyzeMode.ReadingUnicodeChar;
+                    }
+                    else if (c == 'U')
+                    {
+                        unicodeCharsCounter = 8;
+                        unicodeValue.Clear();
+                        mode = SAGrammmarAnalyzeMode.ReadingUnicodeChar;
+                    }
                     else
+                    {
                         symbol.Append(c);
-                    mode = SAGrammmarAnalyzeMode.ReadingChar;
+                        mode = SAGrammmarAnalyzeMode.ReadingChar;
+                    }
+                }
+                else if (mode == SAGrammmarAnalyzeMode.ReadingUnicodeChar)
+                {
+                    if (c == '\\')
+                    {
+                        AppendUnicodeToSymbol(symbol, unicodeValue);
+                        mode = SAGrammmarAnalyzeMode.ReadingCharAfterEscape;
+                    }
+                    else if (c == '\'')
+                    {
+                        AppendUnicodeToSymbol(symbol, unicodeValue);
+                        AcceptItem(grammar, symbol.ToString(), SAGrammarItemType.Characters);
+                        mode = SAGrammmarAnalyzeMode.Waiting;
+                    }
+                    else
+                    {
+                        if (unicodeCharsCounter <= 1)
+                        {
+                            unicodeValue.Append(c);
+                            mode = SAGrammmarAnalyzeMode.ReadingChar;
+                            AppendUnicodeToSymbol(symbol, unicodeValue);
+                        }
+                        else
+                        {
+                            unicodeValue.Append(c);
+                            unicodeCharsCounter--;
+                        }
+                    }
                 }
                 else if (mode == SAGrammmarAnalyzeMode.ReadingString)
                 {
@@ -191,6 +248,18 @@ namespace SyntaxAnalyze
                     {
                         AcceptItem(grammar, symbol.ToString(), SAGrammarItemType.String);
                         mode = SAGrammmarAnalyzeMode.Waiting;
+                    }
+                    else if (c == 'u')
+                    {
+                        unicodeCharsCounter = 4;
+                        unicodeValue.Clear();
+                        mode = SAGrammmarAnalyzeMode.ReadingUnicodeString;
+                    }
+                    else if (c == 'U')
+                    {
+                        unicodeCharsCounter = 8;
+                        unicodeValue.Clear();
+                        mode = SAGrammmarAnalyzeMode.ReadingUnicodeString;
                     }
                     else
                     {
@@ -207,16 +276,72 @@ namespace SyntaxAnalyze
                         symbol.Append(c);
                     mode = SAGrammmarAnalyzeMode.ReadingChar;
                 }
+                else if (mode == SAGrammmarAnalyzeMode.ReadingUnicodeString)
+                {
+                    if (c == '\\')
+                    {
+                        AppendUnicodeToSymbol(symbol, unicodeValue);
+                        mode = SAGrammmarAnalyzeMode.ReadingStringAfterEscape;
+                    }
+                    else if (c == '\'')
+                    {
+                        AppendUnicodeToSymbol(symbol, unicodeValue);
+                        AcceptItem(grammar, symbol.ToString(), SAGrammarItemType.Characters);
+                        mode = SAGrammmarAnalyzeMode.Waiting;
+                    }
+                    else
+                    {
+                        if (unicodeCharsCounter <= 1)
+                        {
+                            unicodeValue.Append(c);
+                            mode = SAGrammmarAnalyzeMode.ReadingString;
+                            AppendUnicodeToSymbol(symbol, unicodeValue);
+                        }
+                        else
+                        {
+                            unicodeValue.Append(c);
+                            unicodeCharsCounter--;
+                        }
+                    }
+                }
             }
 
             return grammar;
         }
 
+        private static void AppendUnicodeToSymbol(StringBuilder symbol, StringBuilder unicodeValue)
+        {
+            int uc;
+            if (int.TryParse(unicodeValue.ToString(), out uc))
+            {
+                symbol.Append(Convert.ToChar(uc));
+            }
+        }
+
         public void AcceptCommand(string cmd, SAGrammar grammar)
         {
-            if (cmd.StartsWith("setMain="))
+            string[] cmdParts = cmd.Split(' ');
+            if (cmdParts.Length == 2)
             {
-                grammar.MainNode = cmd.Substring(8).Trim();
+                if (cmdParts[0].Equals("setMain"))
+                {
+                    grammar.MainNode = cmdParts[1];
+                }
+                else if (cmdParts[0].Equals("propagate"))
+                {
+                    grammar.PropagateNodes.Add(cmdParts[1]);
+                }
+            }
+            else if (cmdParts.Length == 4)
+            {
+                if (cmdParts[0].Equals("remove") && cmdParts[2].Equals("for"))
+                {
+                    grammar.addRemoveNodes(cmdParts[3], cmdParts[1]);
+                }
+                else if (cmdParts[0].Equals("jointext") && cmdParts[2].Equals("in"))
+                {
+                    grammar.addJointextNodes(cmdParts[3], cmdParts[1]);
+                }
             }
         }
 
@@ -289,63 +414,67 @@ namespace SyntaxAnalyze
             parser.Symbol = new SAGrammarSymbol(req.Grammar.MainNode, SAGrammarItemType.Identifier);
             int pos = 0;
             Debugger.Log(0, "", "-----------------\n");
+            logLevel = 0;
             ConvertInputToTreeWithSymbol(req.Grammar, req.InputFileText, parser, ref pos);
             req.OutputTree = parser;
+
+            parsedLength = pos;
+
+            Debugger.Log(0, "", "Position: " + pos + ", InputLength: " + req.InputFileText.Length + "\n");
+
+            parser.jointextNodes(req.Grammar);
+
+            parser.removeNodes(req.Grammar);
+
+            parser.propagateNodes(req.Grammar.PropagateNodes);
+
+            parser.removeSymbolsWithEmptyLines();
         }
 
-        public bool ConvertInputToTreeWithSymbol(SAGrammar g, string input, SAParseTreeNode trySymbol, ref int pos)
+        /// <summary>
+        /// Based on symbol linked in symbolNode parameter, this functions tries to find 
+        /// all lines in symbol definition, that matches input text from given position
+        /// </summary>
+        /// <param name="g">grammar definition</param>
+        /// <param name="inputText">input text</param>
+        /// <param name="symbolNode">node in parser tree dedicated for one particular symbol (identifier, chars, string)</param>
+        /// <param name="pos">position in input text to start parsing from</param>
+        /// <returns>true if at least one line succeeded in matching the input text</returns>
+        public bool ConvertInputToTreeWithSymbol(SAGrammar g, string inputText, SAParseTreeNode symbolNode, ref int pos)
         {
-            SASymbolDefinition def;
-            if (g.Symbols.ContainsKey(trySymbol.Symbol.Value))
-            {
-                def = g.Symbols[trySymbol.Symbol.Value];
-            }
-            else
-            {
-                throw new Exception("Cannot find definition for symbol " + trySymbol.Symbol.Value + " in grammar.");
-            }
+            logLevel++;
+            SASymbolDefinition def = g.getSymbolDefinition(symbolNode.Symbol.Value);
 
             int prevPos = pos;
+            int linesAdded = 0;
             foreach (List<SAGrammarSymbol> line in def.Lines)
             {
                 pos = prevPos;
+                printLogLevel();
                 Debugger.Log(0, "", "Reset pos to " + pos + "\n");
-                SAParseNodeLine nli = new SAParseNodeLine();
+                SAParseNodeLine parsedDefinitionLine = new SAParseNodeLine();
 
-                if (CheckLine(g, input, ref pos, line, nli))
+                if (CheckLine(g, inputText, ref pos, line, parsedDefinitionLine))
                 {
-                    nli.LastPosition = pos;
-                    trySymbol.Lines.Add(nli);
+                    parsedDefinitionLine.LastPosition = pos;
+                    symbolNode.Lines.Add(parsedDefinitionLine);
+                    linesAdded++;
                 }
                 else
                 {
-                    nli = null;
+                    parsedDefinitionLine = null;
                 }
             }
 
-            int maxPos = -1;
-            SAParseNodeLine maxNode = null;
-            foreach (SAParseNodeLine ln2 in trySymbol.Lines)
-            {
-                if (maxPos < ln2.LastPosition)
-                {
-                    maxNode = ln2;
-                    maxPos = ln2.LastPosition;
-                }
-            }
+            symbolNode.updateNextPos();
 
-            if (maxNode != null)
-            {
-                trySymbol.Lines.Clear();
-                trySymbol.Lines.Add(maxNode);
-                trySymbol.NextPos = maxPos;
-            }
-
-            return trySymbol.Lines.Count > 0;
+            logLevel--;
+            return linesAdded > 0;
         }
 
         private bool CheckLine(SAGrammar g, string input, ref int pos, List<SAGrammarSymbol> line, SAParseNodeLine nli)
         {
+            logLevel++;
             bool succ = true;
             foreach (SAGrammarSymbol gs in line)
             {
@@ -353,85 +482,102 @@ namespace SyntaxAnalyze
                 // by (MinOccurences,MaxOccurences) range
                 int count = 0;
                 
-                SAParseTreeNode ptn = new SAParseTreeNode();
-                ptn.Symbol = gs;
-                ptn.Pos = pos;
-                nli.Symbols.Add(ptn);
 
                 for (int tries = 0; tries < gs.MaxOccurences; tries++)
                 {
+                    SAParseTreeNode ptn = new SAParseTreeNode();
+                    ptn.Symbol = gs;
+                    ptn.Pos = pos;
                     succ = CheckSymbolFromLine(g, ptn, input, ref pos, nli, gs);
                     if (!succ) break;
                     count++;
                 }
                 if (!(count >= gs.MinOccurences && count <= gs.MaxOccurences))
                 {
-                    ptn.Valid = false;
+                    //ptn.Valid = false;
+                    logLevel--;
                     return false;
                 }
                 else
                 {
-                    ptn.Valid = true;
+                    //ptn.Valid = true;
                 }
             }
-
+            logLevel--;
             return true;
         }
 
         private bool CheckSymbolFromLine(SAGrammar g, SAParseTreeNode ptn, string input, ref int pos, SAParseNodeLine nli, SAGrammarSymbol gs)
         {
-//            SAParseTreeNode ptn = new SAParseTreeNode();
+            logLevel++;
             bool succ = true;
 
             if (gs.Type == SAGrammarItemType.Characters)
             {
                 if (pos < input.Length)
+                {
+                    printLogLevel();
                     Debugger.Log(0, "", "Compare char input[" + pos + "]=" + input[pos] + " with gs.Value=" + gs.Value + "\n");
+                }
                 if (pos < input.Length && gs.Value.IndexOf(input[pos]) >= 0)
                 {
                     ptn.Value += input[pos];
                     pos++;
+                    nli.Symbols.Add(ptn);
+                    printLogLevel();
                     Debugger.Log(0, "", "- success, new pos is:" + pos + "\n");
                 }
                 else
                 {
                     // fail
+                    printLogLevel();
                     Debugger.Log(0, "", "-fail\n");
                     succ = false;
-                    ptn.Valid = false;
+//                    ptn.Valid = false;
                 }
             }
             else if (gs.Type == SAGrammarItemType.String)
             {
                 if (pos < input.Length)
+                {
+                    printLogLevel();
                     Debugger.Log(0, "", "Compare string input[" + pos + "]=" + input[pos] + " with gs.Value=" + gs.Value + "\n");
+                }
                 if (((pos + gs.Value.Length) <= input.Length)
                     && input.IndexOf(gs.Value, pos, 2) == pos)
                 {
                     pos += gs.Value.Length;
                     ptn.Value += gs.Value;
+                    nli.Symbols.Add(ptn);
+                    printLogLevel();
                     Debugger.Log(0, "", "- success, new pos is:" + pos + "\n");
                 }
                 else
                 {
+                    printLogLevel();
                     Debugger.Log(0, "", "-fail\n");
                     succ = false;
-                    ptn.Valid = false;
+//                    ptn.Valid = false;
                 }
             }
             else if (gs.Type == SAGrammarItemType.Identifier)
             {
+                printLogLevel();
                 Debugger.Log(0, "", "Trying symbol " + gs.Value + " at position " + pos + "\n");
                 ptn.Valid = ConvertInputToTreeWithSymbol(g, input, ptn, ref pos);
                 succ = ptn.Valid;
                 if (!ptn.Valid)
                 {
-                    Debugger.Log(0, "", "-fail\n");
+                    printLogLevel();
+                    Debugger.Log(0, "", "Trying symbol " + gs.Value + " -fail\n");
                     //break;
                 }
                 else
                 {
-                    Debugger.Log(0, "", "-success\n");
+                    nli.Symbols.Add(ptn);
+                    printLogLevel();
+                    Debugger.Log(0, "", "Trying symbol " + gs.Value + " -success\n");
+                    printLogLevel();
                     Debugger.Log(0, "", " New pos = " + ptn.NextPos + "\n");
                     pos = ptn.NextPos;
                 }
@@ -440,7 +586,7 @@ namespace SyntaxAnalyze
             {
                 throw new Exception("Unknown symbol type in definition");
             }
-
+            logLevel--;
             return succ;
         }
 
