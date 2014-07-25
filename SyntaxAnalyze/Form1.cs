@@ -79,23 +79,41 @@ namespace SyntaxAnalyze
 
             SARequest request = new SARequest();
 
+            treeView1.Nodes.Clear();
+
             request.GrammarText = richTextBox1.Text;
 
             request.Grammar = engine.ConvertTextToGrammar(richTextBox1.Text);
+
+            request.Grammar.checkConsistency();
 
             foreach(string symb in request.Grammar.Symbols.Keys)
             {
                 SASymbolDefinition def = request.Grammar.Symbols[symb];
                 TreeNode tn = treeView1.Nodes.Add(symb);
+                tn.ImageIndex = tn.SelectedImageIndex = 1;
                 int lineCount = 1;
                 foreach (List<SAGrammarSymbol> lsym in def.Lines)
                 {
                     TreeNode ltn = tn.Nodes.Add(string.Format("Line {0}", lineCount));
+                    ltn.SelectedImageIndex = ltn.ImageIndex = 1;
                     lineCount++;
                     foreach (SAGrammarSymbol ss in lsym)
                     {
                         TreeNode stn = ltn.Nodes.Add(ss.Value + "(" + ss.MinOccurences + "," + ss.MaxOccurences + ")");
+                        stn.SelectedImageIndex = stn.ImageIndex = (ss.Type == SAGrammarItemType.Identifier ? 1 : 2);
                     }
+                }
+            }
+
+            if (request.Grammar.undefinedIdentifiers.Count > 0)
+            {
+                TreeNode tn2 = treeView1.Nodes.Add("Undefined");
+                tn2.ImageIndex = tn2.SelectedImageIndex = 0;
+                foreach (string s in request.Grammar.undefinedIdentifiers)
+                {
+                    TreeNode tn3 = tn2.Nodes.Add(s);
+                    tn3.ImageIndex = tn3.SelectedImageIndex = 0;
                 }
             }
             treeView1.ExpandAll();

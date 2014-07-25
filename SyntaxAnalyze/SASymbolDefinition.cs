@@ -7,9 +7,11 @@ namespace SyntaxAnalyze
 {
     public class SASymbolDefinition
     {
-        public List<List<SAGrammarSymbol>> Lines = new List<List<SAGrammarSymbol>>();
+        public List<SAGrammarLine> Lines = new List<SAGrammarLine>();
 
         private SAGrammarSymbol lastItem = null;
+
+        private SAGrammarLine lastLine = null;
 
         public void AddItem(string str, SAGrammarItemType type)
         {
@@ -17,8 +19,9 @@ namespace SyntaxAnalyze
             {
                 if (str.Equals("|"))
                 {
-                    List<SAGrammarSymbol> line = new List<SAGrammarSymbol>();
+                    SAGrammarLine line = new SAGrammarLine();
                     Lines.Add(line);
+                    lastLine = line;
                 }
             }
             else
@@ -28,10 +31,10 @@ namespace SyntaxAnalyze
                 item.Value = str;
                 lastItem = item;
 
-                List<SAGrammarSymbol> line = null;
+                SAGrammarLine line = null;
                 if (Lines.Count == 0)
                 {
-                    line = new List<SAGrammarSymbol>();
+                    line = new SAGrammarLine();
                     Lines.Add(line);
                 }
                 else
@@ -52,6 +55,22 @@ namespace SyntaxAnalyze
             {
                 lastItem.MinOccurences = p;
                 lastItem.MaxOccurences = p_2;
+            }
+        }
+
+        public void SetNegator(bool t)
+        {
+            if (lastItem != null)
+            {
+                lastItem.Negative = t;
+            }
+        }
+
+        public void setLineUnion()
+        {
+            if (lastLine != null)
+            {
+                lastLine.UnionOperator = true;
             }
         }
     }

@@ -11,6 +11,7 @@ namespace SyntaxAnalyze
         public string Value;
         public int MinOccurences = 1;
         public int MaxOccurences = 1;
+        public bool Negative = false;
 
         public SAGrammarSymbol()
         {
@@ -20,6 +21,17 @@ namespace SyntaxAnalyze
         {
             Value = title;
             Type = tp;
+        }
+    }
+
+    public class SAGrammarLine
+    {
+        public List<SAGrammarSymbol> Symbols = new List<SAGrammarSymbol>();
+        public bool UnionOperator = false;
+
+        public void Add(SAGrammarSymbol s)
+        {
+            Symbols.Add(s);
         }
     }
 }

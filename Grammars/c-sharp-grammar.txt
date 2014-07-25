@@ -1,0 +1,676 @@
+input
+	: input-section ?
+	;
+input-section
+	: input-section-part
+	| input-section   input-section-part
+	;
+input-section-part
+    : input-elements ? new-line
+	| pp-directive
+	;
+input-elements
+	: input-element
+	| input-elements   input-element
+	;
+input-element
+	: whitespace
+	| comment
+	| token
+	;
+new-line
+	: '\u000D'
+	| '\u000A'
+	| "\u000D\u000A"
+	| '\u2028'
+	| '\u2029'
+	;
+whitespace
+	: '\u0020'
+	| '\u0009'
+	| '\u000B'
+	| '\u000C'
+	| '\u00A0'
+	| '\u1680'
+	| '\u2000'
+	| '\u2001'
+	| '\u2002'
+	| '\u2003'
+	| '\u2004'
+	| '\u2005'
+	| '\u2006'
+	| '\u2007'
+	| '\u2008'
+	| '\u2009'
+	| '\u200A'
+	| '\u202F'
+	| '\u205F'
+	| '\u3000'
+	;
+
+comment
+	: single-line-comment
+	| delimited-comment
+	;
+single-line-comment
+	: "//" input-characters?
+	;
+input-characters
+	: input-character
+	| input-characters   input-character
+	;
+input-character
+	: new-line-character !
+	;
+new-line-character
+	: '\u000D'
+	| '\u000A'
+	| '\u2028'
+	| '\u2029'
+	;
+delimited-comment
+	: "/*" delimited-comment-characters?   "*/"
+	;
+
+delimited-comment-characters
+	: delimited-comment-character
+	| delimited-comment-characters   delimited-comment-character
+	;
+	
+delimited-comment-character
+	: not-asterisk
+	| '*'   not-slash
+	;
+not-asterisk
+	: '*' !
+	;
+not-slash
+	: '/' !
+	;
+
+token
+	: identifier
+	| keyword
+	| integer-literal
+	| real-literal
+	| character-literal
+	| string-literal
+	| operator-or-punctuator
+	;
+
+unicode-escape-sequence
+	:
+	| "\\u"   hex-digit hex-digit hex-digit hex-digit
+	| "\\U"   hex-digit hex-digit hex-digit hex-digit hex-digit hex-digit hex-digit hex-digit
+	;
+	
+identifier
+	: available-identifier
+	| '@' identifier-or-keyword
+	;
+available-identifier
+	: identifier-or-keyword & keyword !
+	;
+identifier-or-keyword
+	: identifier-start-character identifier-part-characters ?
+	;
+identifier-start-character
+	: letter-character
+	| '_'
+	;
+identifier-part-characters
+	: identifier-part-character
+	| identifier-part-characters   identifier-part-character
+	;
+identifier-part-character
+	: letter-character
+	| decimal-digit-character
+	| connecting-character
+	| combining-character
+	| formatting-character
+	;
+letter-character
+	: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+	;
+combining-character
+	: '\u0300'
+	;
+decimal-digit-character:
+	: '0123456789'
+	;
+connecting-character
+	: '\u005f\u203f\u2040\u2054\ufe33\ufe34\ufe4d\ufe4e\ufe4f\uff3f'
+	;
+formatting-character
+	: '\u00ad\u0600'
+	;
+keyword
+	: "abstract" | "as" | "base" | "bool" | "break" | "byte" | "case"
+	| "catch" | "char" | "checked" | "class" | "const" | "continue" | "decimal"
+	| "default" | "delegate" | "do" | "double" | "else" | "enum" | "event"
+	| "explicit" | "extern" | "false" | "finally" | "fixed" | "float" | "for"
+	| "foreach" | "goto" | "if" | "implicit" | "in" | "int" | "interface"
+	| "internal" | "is" | "lock" | "long" | "namespace" | "new" | "null"
+	| "object" | "operator" | "out" | "override" | "params" | "private" | "protected"
+	| "public" | "readonly" | "ref" | "return" | "sbyte" | "sealed" | "short"
+	| "sizeof" | "stackalloc" | "static" | "string" | "struct" | "switch" | "this"
+	| "throw" | "true" | "try" | "typeof" | "uint" | "ulong" | "unchecked"
+	| "unsafe" | "ushort" | "using" | "virtual" | "void" | "volatile" | "while"
+	;
+literal
+	: boolean-literal
+	| integer-literal
+	| real-literal
+	| character-literal
+	| string-literal
+	| null-literal
+	;
+boolean-literal
+	: "true" | "false"
+	;
+integer-literal
+	: decimal-integer-literal
+	| hexadecimal-integer-literal
+	;
+decimal-integer-literal
+	: decimal-digits   integer-type-suffix?
+	;
+decimal-digits
+	: decimal-digit
+	| decimal-digits   decimal-digit
+	;
+decimal-digit
+	: '0123456789'
+	;
+integer-type-suffix
+	: 'uUlL'
+	| 'uU' 'lL'
+	| 'lL' 'uU'
+	;
+hexadecimal-integer-literal
+	: '0' 'xX' hex-digits integer-type-suffix?
+	;
+hex-digits
+	: hex-digit
+	| hex-digits   hex-digit
+	;
+hex-digit
+	: '0123456789ABCDEFabcdef'
+	;
+real-literal
+	: decimal-digits '.'  decimal-digits   exponent-part?   real-type-suffix?
+	| '.' decimal-digits exponent-part? real-type-suffix?
+	| decimal-digits  exponent-part real-type-suffix?
+	| decimal-digits  real-type-suffix
+	;
+exponent-part
+	: 'eE' sign? decimal-digits
+	;
+sign
+	: '+-'
+	;
+real-type-suffix
+	: 'FfDdMm'
+	;
+character-literal
+	: '\'' character '\''
+	;
+character
+	: single-character
+	| simple-escape-sequence
+	| hexadecimal-escape-sequence
+	| unicode-escape-sequence
+	;
+single-character
+	: single-character-nonacceptable !
+	;
+single-character-nonacceptable
+	: '\''
+	| '\\'
+	| new-line-character
+	;
+simple-escape-sequence
+	: "\\\'" 
+	| "\\\""
+	| "\\\\"
+	| "\\0"
+	| "\\a"
+	| "\\b"
+	| "\\f"
+	| "\\n"
+	| "\\r"
+	| "\\t"
+	| "\\v"
+	;
+hexadecimal-escape-sequence
+	: "\\x"  hex-digit hex-digit? hex-digit? hex-digit?
+	;
+string-literal
+	: regular-string-literal
+	| verbatim-string-literal
+	;
+regular-string-literal
+	: '\"' regular-string-literal-characters? '\"'
+	;
+regular-string-literal-characters
+	: regular-string-literal-character
+	| regular-string-literal-characters   regular-string-literal-character
+	;
+regular-string-literal-character
+	: single-regular-string-literal-character
+	| simple-escape-sequence
+	| hexadecimal-escape-sequence
+	| unicode-escape-sequence
+	;
+single-regular-string-literal-character
+	: single-regular-string-literal-character-nonacceptable !
+	;
+single-regular-string-literal-character-nonacceptable
+	: '\"'
+	| '\\'
+	| new-line-character
+	;
+verbatim-string-literal
+	: "@\""   verbatim-string-literal-characters?   "\""
+	;
+verbatim-string-literal-characters
+	: verbatim-string-literal-character
+	| verbatim-string-literal-characters   verbatim-string-literal-character
+	;
+verbatim-string-literal-character
+	: single-verbatim-string-literal-character
+	| quote-escape-sequence
+	;
+single-verbatim-string-literal-character
+	: "\"" !
+	;
+quote-escape-sequence
+	: "\"\""
+	;
+null-literal
+	: "null"
+	;
+operator-or-punctuator
+	: "{" | "}" | "[" | "]" | "(" | ")" | "." | "," | ":" | ";" 
+	| "+" | "-" | "*" | "/" | "%" | "&" | "|" | "^" | "!" 
+	| "~" | "=" | "<" | ">" | "?" | "++" | "--" | "&&" | "||" 
+	| "<<" | ">>" | "==" | "!=" | "<=" | ">=" | "+=" | "-=" 
+	| "*=" | "/=" | "%=" | "&=" | "|=" | "^=" | "<<=" | ">>=" | "->"
+	;
+	
+pp-directive
+	: pp-declaration
+	| pp-conditional
+	| pp-line
+	| pp-diagnostic
+	| pp-region
+	;
+pp-new-line
+	: whitespace* single-line-comment? new-line
+	;
+conditional-symbol
+	: & identifier-or-keyword boolean-literal !
+	;
+pp-expression
+	: whitespace* pp-or-expression   whitespace*
+	;
+pp-or-expression
+	: pp-and-expression
+	| pp-or-expression   whitespace* "||" whitespace* pp-and-expression
+	;
+pp-and-expression
+	: pp-equality-expression
+	| pp-and-expression whitespace* "&&" whitespace* pp-equality-expression
+	;
+pp-equality-expression
+	: pp-unary-expression
+	| pp-equality-expression whitespace* "==" whitespace* pp-unary-expression
+	| pp-equality-expression whitespace* "!=" whitespace* pp-unary-expression
+	;
+pp-unary-expression
+	: pp-primary-expression
+	| '!' whitespace* pp-unary-expression
+	;
+pp-primary-expression
+	: "true" | "false"
+	| conditional-symbol
+	| '('   whitespace* pp-expression whitespace* ')'
+	;
+pp-declaration
+	: whitespace* '#' whitespace* "define" whitespace conditional-symbol pp-new-line
+	| whitespace* '#' whitespace* "undef"  whitespace conditional-symbol pp-new-line
+	;
+pp-conditional
+	: pp-if-section pp-elif-sections? pp-else-section? pp-endif
+	;
+pp-if-section
+	: whitespace* '#' whitespace* "if" whitespace pp-expression pp-new-line conditional-section?
+	;
+pp-elif-sections
+	: pp-elif-section
+	| pp-elif-sections   pp-elif-section
+	;
+pp-elif-section
+	: whitespace* '#' whitespace* "elif" whitespace pp-expression pp-new-line conditional-section?
+	;
+pp-else-section
+	: whitespace* '#' whitespace* "else" pp-new-line conditional-section?
+	;
+pp-endif
+	: whitespace* '#' whitespace* "endif" pp-new-line
+	;
+conditional-section
+	: input-section
+	| skipped-section
+	;
+skipped-section
+	: skipped-section-part
+	| skipped-section   skipped-section-part
+	;
+skipped-section-part
+	: skipped-characters* new-line
+	| pp-directive
+	;
+skipped-characters
+	: whitespace* not-number-sign input-characters?
+	;
+not-number-sign
+	: '#' !
+	;
+pp-line
+	: whitespace* '#' whitespace* "line" whitespace line-indicator pp-new-line
+	;
+line-indicator
+	: decimal-digits   whitespace   file-name
+	| decimal-digits
+	| "default"
+	;
+file-name
+	: '\"' file-name-characters '\"'
+	;
+file-name-characters
+	: file-name-character
+	| file-name-characters   file-name-character
+	;
+file-name-character
+	: '\"' !
+	;
+pp-diagnostic
+	: whitespace* '#' whitespace* "error" pp-message
+	| whitespace* '#' whitespace* "warning" pp-message
+	;
+pp-message
+	: new-line
+	| whitespace input-characters? new-line
+	;
+pp-region
+	: pp-start-region conditional-section? pp-end-region
+	;
+pp-start-region
+	: whitespace* '#' whitespace* "region" pp-message
+	;
+pp-end-region
+	: whitespace* '#' whitespace* "endregion" pp-message
+	;
+
+namespace-name
+	: namespace-or-type-name
+	;
+type-name
+	: namespace-or-type-name
+	;
+namespace-or-type-name
+	: identifier
+	| namespace-or-type-name '.' identifier
+	;
+
+	
+type
+	: value-type
+	| reference-type
+	;
+value-type
+	: struct-type
+	| enum-type
+	;
+struct-type
+	: type-name
+	| simple-type
+	;
+simple-type
+	: numeric-type
+	| "bool"
+	;
+numeric-type
+	: integral-type
+	| floating-point-type
+	| "decimal"
+	;
+integral-type
+	: "sbyte" | "byte" | "short" | "ushort" | "int" | "uint" | "long" | "ulong" | "char"
+	;
+floating-point-type
+	: "float" | "double"
+	;
+enum-type
+	: type-name
+	;
+reference-type
+	: class-type
+	| interface-type
+	| array-type
+	| delegate-type
+	;
+class-type
+	: type-name
+	| "object"
+	| "string"
+	;
+interface-type
+	: type-name
+	;
+array-type
+	: non-array-type rank-specifiers
+	;
+non-array-type
+	: type
+	;
+rank-specifiers
+	: rank-specifier
+	| rank-specifiers rank-specifier
+	;
+rank-specifier
+	: '[' dim-separators ']'
+	;
+dim-separators
+	: ','
+	| dim-separators ','
+	;
+delegate-type
+	: type-name
+	;
+	
+variable-reference
+	: expression
+	;
+	
+argument-list
+	: argument
+	| argument-list ',' argument
+	;
+argument
+	: expression
+	| "ref" variable-reference
+	| "out" variable-reference
+	;
+primary-expression
+	: primary-no-array-creation-expression
+	| array-creation-expression
+	;
+primary-no-array-creation-expression
+	: literal
+	| simple-name
+	| parenthesized-expression
+	| member-access
+	| invocation-expression
+	| element-access
+	| this-access
+	| base-access
+	| post-increment-expression
+	| post-decrement-expression
+	| object-creation-expression
+	| delegate-creation-expression
+	| typeof-expression
+	| sizeof-expression
+	| checked-expression
+	| unchecked-expression
+	;
+simple-name
+	: identifier
+	;
+parenthesized-expression
+	: '(' expression ')'
+	;
+member-access
+	: primary-expression '.' identifier
+	| predefined-type '.' identifier
+	;
+predefined-type
+	: "bool" | "byte" | "char" | "decimal" | "double" | "float" | "int" | "long"
+	| "object" | "sbyte" | "short" | "string" | "uint" | "ulong" | "ushort"
+	;
+invocation-expression
+	: primary-expression '(' argument-list? ')'
+	;
+element-access
+	: primary-no-array-creation-expression '[' expression-list ']'
+	;
+expression-list
+	: expression
+	| expression-list ',' expression
+	;
+this-access
+	: "this"
+	;
+base-access
+	: "base" '.' identifier
+	| "base" '[' expression-list ']'
+	;
+post-increment-expression
+	: primary-expression "++"
+	;
+post-decrement-expression
+	: primary-expression "--"
+	;
+object-creation-expression
+	: "new" type '(' argument-list? ')'
+	;
+array-creation-expression
+	: "new" non-array-type '[' expression-list ']' rank-specifiers? array-initializer?
+	| "new" array-type array-initializer
+	;
+delegate-creation-expression
+	: "new" delegate-type '(' expression ')'
+	;
+typeof-expression
+	: "typeof" '(' type ')'
+	| "typeof" '(' "void" ')'
+	;
+checked-expression
+	: "checked" '(' expression ')'
+	;
+unchecked-expression
+	: "unchecked" '(' expression ')'
+	;
+unary-expression
+	: primary-expression
+	| '+' unary-expression
+	| '-' unary-expression
+	| '!' unary-expression
+	| '~' unary-expression
+	| '*' unary-expression
+	| pre-increment-expression
+	| pre-decrement-expression
+	| cast-expression
+	;
+pre-increment-expression
+	: "++" unary-expression
+	;
+pre-decrement-expression
+	: "--" unary-expression
+	;
+cast-expression
+	: '(' type ')' unary-expression
+	;
+multiplicative-expression
+	: unary-expression
+	| multiplicative-expression '*' unary-expression
+	| multiplicative-expression '/' unary-expression
+	| multiplicative-expression '%' unary-expression
+	;
+additive-expression
+	: multiplicative-expression
+	| additive-expression '+' multiplicative-expression
+	| additive-expression '–' multiplicative-expression
+	;
+shift-expression
+	: additive-expression
+	| shift-expression "<<" additive-expression
+	| shift-expression ">>" additive-expression
+	;
+relational-expression
+	: shift-expression
+	| relational-expression   "<"   shift-expression
+	| relational-expression   ">"   shift-expression
+	| relational-expression   "<="   shift-expression
+	| relational-expression   ">="   shift-expression
+	| relational-expression   "is"   type
+	| relational-expression   "as"   type
+	;
+equality-expression
+	: relational-expression
+	| equality-expression "==" relational-expression
+	| equality-expression "!=" relational-expression
+	;
+and-expression
+	: equality-expression
+	| and-expression "&" equality-expression
+	;
+exclusive-or-expression
+	: and-expression
+	| exclusive-or-expression "^" and-expression
+	;
+inclusive-or-expression
+	: exclusive-or-expression
+	| inclusive-or-expression "|" exclusive-or-expression
+	;
+conditional-and-expression
+	: inclusive-or-expression
+	| conditional-and-expression "&&" inclusive-or-expression
+	;
+conditional-or-expression
+	: conditional-and-expression
+	| conditional-or-expression "||" conditional-and-expression
+	;
+conditional-expression
+	: conditional-or-expression
+	| conditional-or-expression  "?" expression ":" expression
+	;
+assignment
+	: unary-expression assignment-operator expression
+assignment-operator
+	: "=" | "+=" | "-=" | "*=" | "/=" | "%=" | "&=" | "|=" | "^=" | "<<=" | ">>="
+	;
+expression
+	: conditional-expression
+	| assignment
+	;
+constant-expression
+	: expression
+	;
+boolean-expression
+	: expression
+	;
+	
+continue on http://msdn.microsoft.com/en-us/library/aa664812(v=vs.71).aspx
+from Statements

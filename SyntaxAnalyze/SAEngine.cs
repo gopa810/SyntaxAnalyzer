@@ -249,6 +249,23 @@ namespace SyntaxAnalyze
                         AcceptItem(grammar, symbol.ToString(), SAGrammarItemType.String);
                         mode = SAGrammmarAnalyzeMode.Waiting;
                     }
+                    else
+                    {
+                        symbol.Append(c);
+                    }
+                }
+                else if (mode == SAGrammmarAnalyzeMode.ReadingStringAfterEscape)
+                {
+                    if (c == 'n')
+                    {
+                        symbol.Append('\n');
+                        mode = SAGrammmarAnalyzeMode.ReadingString;
+                    }
+                    else if (c == 't')
+                    {
+                        symbol.Append('\t');
+                        mode = SAGrammmarAnalyzeMode.ReadingString;
+                    }
                     else if (c == 'u')
                     {
                         unicodeCharsCounter = 4;
@@ -264,17 +281,8 @@ namespace SyntaxAnalyze
                     else
                     {
                         symbol.Append(c);
+                        mode = SAGrammmarAnalyzeMode.ReadingString;
                     }
-                }
-                else if (mode == SAGrammmarAnalyzeMode.ReadingStringAfterEscape)
-                {
-                    if (c == 'n')
-                        symbol.Append('\n');
-                    else if (c == 't')
-                        symbol.Append('\t');
-                    else
-                        symbol.Append(c);
-                    mode = SAGrammmarAnalyzeMode.ReadingChar;
                 }
                 else if (mode == SAGrammmarAnalyzeMode.ReadingUnicodeString)
                 {
@@ -386,6 +394,14 @@ namespace SyntaxAnalyze
                     {
                         grammar.parsedItem.SetMinMaxForLastItem(1, int.MaxValue);
                     }
+                    else if (item.Equals("!"))
+                    {
+                        grammar.parsedItem.SetNegator(true);
+                    }
+                    else if (item.Equals("&"))
+                    {
+                        grammar.parsedItem.setLineUnion();
+                    }
                     else if (grammar.parsedItem != null)
                     {
                         grammar.parsedItem.AddItem(item, type);
@@ -405,7 +421,7 @@ namespace SyntaxAnalyze
 
         public bool IsOperatorChar(char c)
         {
-            return ":;|?*+".IndexOf(c) >= 0;
+            return ":;|?*+!&".IndexOf(c) >= 0;
         }
 
         public void ConvertInputToTree(SARequest req)
@@ -447,7 +463,7 @@ namespace SyntaxAnalyze
 
             int prevPos = pos;
             int linesAdded = 0;
-            foreach (List<SAGrammarSymbol> line in def.Lines)
+            foreach (SAGrammarLine line in def.Lines)
             {
                 pos = prevPos;
                 printLogLevel();
@@ -472,16 +488,23 @@ namespace SyntaxAnalyze
             return linesAdded > 0;
         }
 
-        private bool CheckLine(SAGrammar g, string input, ref int pos, List<SAGrammarSymbol> line, SAParseNodeLine nli)
+        private bool CheckLine(SAGrammar g, string input, ref int pos, SAGrammarLine line, SAParseNodeLine nli)
         {
             logLevel++;
             bool succ = true;
-            foreach (SAGrammarSymbol gs in line)
+            int origPos = pos;
+            foreach (SAGrammarSymbol gs in line.Symbols)
             {
                 // for each symbol in line tries to find as much instances as allowed
                 // by (MinOccurences,MaxOccurences) range
                 int count = 0;
-                
+
+                // if we have union operator
+                // we try to macth all symbols from the beginning
+                // in other words, character succesion on input must 
+                // match all symbols in this line
+                if (line.UnionOperator)
+                    pos = origPos;
 
                 for (int tries = 0; tries < gs.MaxOccurences; tries++)
                 {
@@ -498,10 +521,10 @@ namespace SyntaxAnalyze
                     logLevel--;
                     return false;
                 }
-                else
+/*                else
                 {
                     //ptn.Valid = true;
-                }
+                }*/
             }
             logLevel--;
             return true;
@@ -510,7 +533,7 @@ namespace SyntaxAnalyze
         private bool CheckSymbolFromLine(SAGrammar g, SAParseTreeNode ptn, string input, ref int pos, SAParseNodeLine nli, SAGrammarSymbol gs)
         {
             logLevel++;
-            bool succ = true;
+            bool succ = !gs.Negative;
 
             if (gs.Type == SAGrammarItemType.Characters)
             {
@@ -532,7 +555,7 @@ namespace SyntaxAnalyze
                     // fail
                     printLogLevel();
                     Debugger.Log(0, "", "-fail\n");
-                    succ = false;
+                    succ = gs.Negative;
 //                    ptn.Valid = false;
                 }
             }
@@ -556,7 +579,7 @@ namespace SyntaxAnalyze
                 {
                     printLogLevel();
                     Debugger.Log(0, "", "-fail\n");
-                    succ = false;
+                    succ = gs.Negative;
 //                    ptn.Valid = false;
                 }
             }

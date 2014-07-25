@@ -12,6 +12,8 @@ namespace SyntaxAnalyze
         public List<String> PropagateNodes = new List<string>();
         public Dictionary<string, HashSet<string>> RemoveNodes = new Dictionary<string, HashSet<string>>();
         public Dictionary<string, HashSet<string>> JointextNodes = new Dictionary<string, HashSet<string>>();
+        public List<String> undefinedIdentifiers = new List<string>();
+
 
         public SAGrammarParseMode parseMode = SAGrammarParseMode.Waiting;
         public SASymbolDefinition parsedItem = null;
@@ -54,6 +56,27 @@ namespace SyntaxAnalyze
                 HashSet<string> s = new HashSet<string>();
                 s.Add(child);
                 JointextNodes.Add(parent, s);
+            }
+        }
+
+        public void checkConsistency()
+        {
+
+            foreach (string key in Symbols.Keys)
+            {
+                SASymbolDefinition sd = Symbols[key];
+
+                foreach (List<SAGrammarSymbol> s in sd.Lines)
+                {
+                    foreach (SAGrammarSymbol ss in s)
+                    {
+                        if (ss.Type == SAGrammarItemType.Identifier
+                            && !Symbols.ContainsKey(ss.Value))
+                        {
+                            undefinedIdentifiers.Add(ss.Value);
+                        }
+                    }
+                }
             }
         }
     }
