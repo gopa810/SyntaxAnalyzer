@@ -368,7 +368,14 @@ namespace SyntaxAnalyze
                     if (grammar.cachedItemType == SAGrammarItemType.Identifier)
                     {
                         SASymbolDefinition symbol = new SASymbolDefinition();
-                        grammar.Symbols.Add(grammar.cachedItem, symbol);
+                        if (grammar.Symbols.ContainsKey(grammar.cachedItem))
+                        {
+                            Debugger.Log(0, "", "Duplicated terms: " + grammar.cachedItem + "\n");
+                        }
+                        else
+                        {
+                            grammar.Symbols.Add(grammar.cachedItem, symbol);
+                        }
                         grammar.parsedItem = symbol;
                         grammar.parseMode = SAGrammarParseMode.ReadingLine;
                     }

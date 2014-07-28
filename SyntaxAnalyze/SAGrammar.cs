@@ -66,12 +66,13 @@ namespace SyntaxAnalyze
             {
                 SASymbolDefinition sd = Symbols[key];
 
-                foreach (List<SAGrammarSymbol> s in sd.Lines)
+                foreach (SAGrammarLine s in sd.Lines)
                 {
-                    foreach (SAGrammarSymbol ss in s)
+                    foreach (SAGrammarSymbol ss in s.Symbols)
                     {
                         if (ss.Type == SAGrammarItemType.Identifier
-                            && !Symbols.ContainsKey(ss.Value))
+                            && !Symbols.ContainsKey(ss.Value)
+                            && undefinedIdentifiers.IndexOf(ss.Value) < 0)
                         {
                             undefinedIdentifiers.Add(ss.Value);
                         }

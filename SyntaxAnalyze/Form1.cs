@@ -93,12 +93,12 @@ namespace SyntaxAnalyze
                 TreeNode tn = treeView1.Nodes.Add(symb);
                 tn.ImageIndex = tn.SelectedImageIndex = 1;
                 int lineCount = 1;
-                foreach (List<SAGrammarSymbol> lsym in def.Lines)
+                foreach (SAGrammarLine lsym in def.Lines)
                 {
                     TreeNode ltn = tn.Nodes.Add(string.Format("Line {0}", lineCount));
                     ltn.SelectedImageIndex = ltn.ImageIndex = 1;
                     lineCount++;
-                    foreach (SAGrammarSymbol ss in lsym)
+                    foreach (SAGrammarSymbol ss in lsym.Symbols)
                     {
                         TreeNode stn = ltn.Nodes.Add(ss.Value + "(" + ss.MinOccurences + "," + ss.MaxOccurences + ")");
                         stn.SelectedImageIndex = stn.ImageIndex = (ss.Type == SAGrammarItemType.Identifier ? 1 : 2);
