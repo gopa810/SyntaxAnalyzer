@@ -1,0 +1,245 @@
+
+superclass_stat :
+    ':' superclass_name
+    ;
+    
+class_interface : 
+    '@interface' class_name ?superclass_stat ?protocol_reference_list ?instance_variables ?interface_declaration_list '@end'
+    ;
+
+class_implementation : 
+    '@implementation' class_name ?superclass_stat ?implementation_definition_list '@end' 
+    ;
+
+category_interface : 
+    '@interface' class_name '(' category_name ')' ?protocol_reference_list ?interface_declaration_list '@end'
+    ;
+
+category_implementation : 
+    '@implementation' class_name '(' category_name ')' ?implementation_definition_list '@end'
+    ;
+
+protocol_declaration : 
+    '@protocol' protocol_name ?protocol_reference_list ?interface_declaration_list '@end'
+    ;
+
+protocol_declaration_list : 
+    '@protocol' protocol_list ';'
+    ;
+    
+class_declaration_list : 
+    '@class' *class_name ';'
+    ;
+
+class_list : 
+    class_name
+    | class_list ',' class_name
+    ;
+
+protocol_reference_list : 
+    '<' protocol_list '>'
+    ;
+    
+protocol_list : 
+    protocol_name
+    | protocol_list ',' protocol_name
+    ;
+    
+class_name : 
+    id
+    ;
+
+superclass_name : 
+    id
+    ;
+    
+category_name : 
+    id
+    ;
+    
+protocol_name : 
+    id
+    ;
+    
+instance_variables : 
+    '{' '}'
+    | '{' instance_variable_declaration '}'
+    ;
+
+instance_variable_declaration : 
+    visibility_specification  ?struct_decl_list 
+    | ?visibility_specification  struct_decl_list instance_variables
+    ;
+
+visibility_specification : 
+    '@private'
+    | '@protected'
+    | '@package'
+    | '@public'
+    ;
+    
+interface_declaration_list : 
+    ?interface_declaration_list decl
+    | ?interface_declaration_list method_declaration
+    | ?interface_declaration_list property_declaration
+    ;
+
+method_declaration : 
+    class_method_declaration
+    | instance_method_declaration
+    ;
+    
+class_method_declaration : 
+    '+' ?method_type method_selector ';'
+    ;
+    
+instance_method_declaration : 
+    '–' ?method_type method_selector ';'
+    ;
+    
+implementation_definition_list : 
+    ?implementation_definition_list property_implementation
+    | ?implementation_definition_list function_definition
+    | ?implementation_definition_list decl
+    | ?implementation_definition_list method_definition
+    ;
+
+method_definition : 
+    class_method_definition
+    | instance_method_definition
+    ;
+    
+class_method_definition : 
+    '+' ?method_type method_selector ?declaration_list compound_statement
+    ;
+    
+instance_method_definition : 
+    '–' ?method_type method_selector ?declaration_list compound_statement
+    ;
+    
+method_selector : 
+    unary_selector
+    | keyword_selector
+    | keyword_selector ',' '...'
+    | keyword_selector ',' parameter_type_list
+    ;
+
+unary_selector : 
+    selector
+    ;
+    
+keyword_selector : 
+    *keyword_declarator
+    ;
+    
+keyword_declarator : 
+    ':'  ?method_type id
+    | selector ':'  ?method_type id
+    ;
+
+selector : 
+    id
+    ;
+
+method_type : 
+    '(' type_name ')'
+    ;
+   
+message_expression : 
+    '[' receiver message_selector ']'
+    ;
+
+receiver : 
+    expression
+    | class_name
+    | 'super'
+    ;
+
+message_selector : 
+    selector
+    | keyword_argument_list
+    ;
+
+keyword_argument_list : 
+    keyword_argument
+    | keyword_argument_list keyword_argument
+    ;
+
+keyword_argument : 
+    selector  ':'  expression
+    | ':'  expression
+    ;
+
+selector_expression : 
+    '@selector' '(' selector_name ')'
+    ;
+    
+selector_name : 
+    selector
+    | keyword_name_list
+    ;
+
+keyword_name_list : 
+    *keyword_name
+    ;
+
+keyword_name : 
+    selector ':'
+    | ':'
+    ;
+        
+protocol_expression : 
+    '@protocol' '(' protocol_name ')'
+    ;
+
+encode_expression : 
+    '@encode' '(' type_name ')'
+    ;
+
+exception_declarator : 
+    decl
+    ;
+
+try_statement : 
+    '@try' stat
+    ;
+
+catch_statement : 
+    '@catch' '(' exception_declarator ')' stat
+    ;
+
+finally_statement : 
+    '@finally' stat
+    ;
+
+throw_statement : 
+    '@throw' primary_exp
+    ;
+
+try_block : 
+    try_statement catch_statement ?finally_statement
+    ;
+
+synchronized_statement : 
+    @synchronized '(' id ')' stat
+    ;
+
+property_declaration  : 
+    '@property' ?property_attributes_declaration struct_decl
+    ;
+
+property_attributes_declaration  : 
+    '(' property_attributes ')'
+    ;
+
+property_implementation : 
+    '@synthesize' property_synthesize_list ';'
+    | '@dynamic' id_list ';'
+    ;
+
+property_synthesize_list  : 
+    property_synthesize_list ',' id
+    | id
+    ;
+
+

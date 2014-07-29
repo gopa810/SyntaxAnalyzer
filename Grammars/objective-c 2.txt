@@ -1,0 +1,63 @@
+
+% External Declaration List
+define external_declaration_list
+    [repeat external_declaration]
+end define 
+
+% Not complete - add incrementally 
+define external_declaration
+    [opt preprocessor_declaration]
+    | [opt function_definition]
+    | [opt declaration]
+    | [opt class_declaration_list]
+    | [opt protocol_declaration_list]
+    | [opt class_interface]
+    | [opt class_implementation]
+    % category_interface - not implemented
+    % category_implementation - not implemented
+    % protocol_declaration - not implemented 
+end define 
+
+% ===================== PREPROCESSOR DECLARATION =================================================
+ 
+% Preprocessor Declaration
+% Source: Cpp preprocessor 
+define preprocessor_declaration
+    [preprocessor_declaration]
+    | '# 'define [id] '( [list id+] ') [expression]
+    | '# 'define [id] [expression]
+    | [EX] '#else
+    | [EX] '#endif
+    | [EX] '#if [expression] [IN]
+    | [NL] '#ifdef [id] [IN]
+    | [NL] '#ifndef [id] [IN]
+    | '#ident [stringlit]
+    | '# 'include [stringlit]
+    | '# 'include '< [SPOFF] [filename] '> [SPON]
+    | '#line [integernumber] [opt stringlit]
+    | '#undef [id]
+    | '#LINK [stringlit]
+    | '# 'import [stringlit]
+    | '# 'import '< [SPOFF] [filename] '> [SPON]
+end define 
+
+% File name 
+define filename
+    [file_identifier] [repeat dot_slash_identifier]
+end define
+
+% File Identifier 
+define file_identifier
+    [id]
+    | [key]
+end define 
+
+% For . and / in file structure 
+define dot_slash_identifier
+    [opt '.] [opt '/] [file_identifier]
+end define 
+
+
+% ===================== DECLARATION ==========================================================
+
+
