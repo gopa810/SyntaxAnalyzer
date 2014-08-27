@@ -326,6 +326,18 @@ namespace SyntaxAnalyze
             }
         }
 
+        /// <summary>
+        /// Processing of lines from input
+        /// that are in the format:
+        /// 
+        /// #setMain {main_identifier};
+        /// #propagate {identifier};
+        /// #remove {ident1} for {ident2};
+        /// #jointext {ident3} in {ident4};
+        /// 
+        /// </summary>
+        /// <param name="cmd"></param>
+        /// <param name="grammar"></param>
         public void AcceptCommand(string cmd, SAGrammar grammar)
         {
             string[] cmdParts = cmd.Split(' ');
@@ -443,7 +455,7 @@ namespace SyntaxAnalyze
 
             parsedLength = pos;
 
-            Debugger.Log(0, "", "Position: " + pos + ", InputLength: " + req.InputFileText.Length + "\n");
+            //Debugger.Log(0, "", "Position: " + pos + ", InputLength: " + req.InputFileText.Length + "\n");
 
             parser.jointextNodes(req.Grammar);
 
@@ -474,7 +486,7 @@ namespace SyntaxAnalyze
             {
                 pos = prevPos;
                 printLogLevel();
-                Debugger.Log(0, "", "Reset pos to " + pos + "\n");
+                //Debugger.Log(0, "", "Reset pos to " + pos + "\n");
                 SAParseNodeLine parsedDefinitionLine = new SAParseNodeLine();
 
                 if (CheckLine(g, inputText, ref pos, line, parsedDefinitionLine))
@@ -547,7 +559,7 @@ namespace SyntaxAnalyze
                 if (pos < input.Length)
                 {
                     printLogLevel();
-                    Debugger.Log(0, "", "Compare char input[" + pos + "]=" + input[pos] + " with gs.Value=" + gs.Value + "\n");
+                    //Debugger.Log(0, "", "Compare char input[" + pos + "]=" + input[pos] + " with gs.Value=" + gs.Value + "\n");
                 }
                 if (pos < input.Length && gs.Value.IndexOf(input[pos]) >= 0)
                 {
@@ -555,13 +567,13 @@ namespace SyntaxAnalyze
                     pos++;
                     nli.Symbols.Add(ptn);
                     printLogLevel();
-                    Debugger.Log(0, "", "- success, new pos is:" + pos + "\n");
+                    //Debugger.Log(0, "", "- success, new pos is:" + pos + "\n");
                 }
                 else
                 {
                     // fail
                     printLogLevel();
-                    Debugger.Log(0, "", "-fail\n");
+                    //Debugger.Log(0, "", "-fail\n");
                     succ = gs.Negative;
 //                    ptn.Valid = false;
                 }
@@ -571,7 +583,7 @@ namespace SyntaxAnalyze
                 if (pos < input.Length)
                 {
                     printLogLevel();
-                    Debugger.Log(0, "", "Compare string input[" + pos + "]=" + input[pos] + " with gs.Value=" + gs.Value + "\n");
+                    //Debugger.Log(0, "", "Compare string input[" + pos + "]=" + input[pos] + " with gs.Value=" + gs.Value + "\n");
                 }
                 if (((pos + gs.Value.Length) <= input.Length)
                     && input.IndexOf(gs.Value, pos, 2) == pos)
@@ -580,12 +592,12 @@ namespace SyntaxAnalyze
                     ptn.Value += gs.Value;
                     nli.Symbols.Add(ptn);
                     printLogLevel();
-                    Debugger.Log(0, "", "- success, new pos is:" + pos + "\n");
+                    //Debugger.Log(0, "", "- success, new pos is:" + pos + "\n");
                 }
                 else
                 {
                     printLogLevel();
-                    Debugger.Log(0, "", "-fail\n");
+                    //Debugger.Log(0, "", "-fail\n");
                     succ = gs.Negative;
 //                    ptn.Valid = false;
                 }
@@ -593,22 +605,22 @@ namespace SyntaxAnalyze
             else if (gs.Type == SAGrammarItemType.Identifier)
             {
                 printLogLevel();
-                Debugger.Log(0, "", "Trying symbol " + gs.Value + " at position " + pos + "\n");
+                //Debugger.Log(0, "", "Trying symbol " + gs.Value + " at position " + pos + "\n");
                 ptn.Valid = ConvertInputToTreeWithSymbol(g, input, ptn, ref pos);
                 succ = ptn.Valid;
                 if (!ptn.Valid)
                 {
                     printLogLevel();
-                    Debugger.Log(0, "", "Trying symbol " + gs.Value + " -fail\n");
+                   // Debugger.Log(0, "", "Trying symbol " + gs.Value + " -fail\n");
                     //break;
                 }
                 else
                 {
                     nli.Symbols.Add(ptn);
                     printLogLevel();
-                    Debugger.Log(0, "", "Trying symbol " + gs.Value + " -success\n");
+                    //Debugger.Log(0, "", "Trying symbol " + gs.Value + " -success\n");
                     printLogLevel();
-                    Debugger.Log(0, "", " New pos = " + ptn.NextPos + "\n");
+                    //Debugger.Log(0, "", " New pos = " + ptn.NextPos + "\n");
                     pos = ptn.NextPos;
                 }
             }

@@ -12,3 +12,4 @@ C:\Users\peter.kollath\Documents\GitHub\SyntaxAnalyzer\SyntaxAnalyze\bin\Debug\S
 C:\Users\peter.kollath\Documents\GitHub\SyntaxAnalyzer\SyntaxAnalyze\obj\x86\Debug\SyntaxAnalyze.Form1.resources
 C:\Users\peter.kollath\Documents\GitHub\SyntaxAnalyzer\SyntaxAnalyze\obj\x86\Debug\SyntaxAnalyze.Properties.Resources.resources
 C:\Users\peter.kollath\Documents\GitHub\SyntaxAnalyzer\SyntaxAnalyze\obj\x86\Debug\SyntaxAnalyze.csproj.GenerateResource.Cache
+C:\Users\peter.kollath\Documents\GitHub\SyntaxAnalyzer\SyntaxAnalyze\obj\x86\Debug\SyntaxAnalyze.csprojResolveAssemblyReference.cache

@@ -1,17 +1,17 @@
+#setMain input;
+
 input
 	: input-section ?
 	;
 input-section
-	: input-section-part
-	| input-section   input-section-part
+	: input-section-part *
 	;
 input-section-part
     : input-elements ? new-line
 	| pp-directive
 	;
 input-elements
-	: input-element
-	| input-elements   input-element
+	: input-element *
 	;
 input-element
 	: whitespace
@@ -56,8 +56,7 @@ single-line-comment
 	: "//" input-characters?
 	;
 input-characters
-	: input-character
-	| input-characters   input-character
+	: input-character *
 	;
 input-character
 	: new-line-character !
@@ -73,8 +72,7 @@ delimited-comment
 	;
 
 delimited-comment-characters
-	: delimited-comment-character
-	| delimited-comment-characters   delimited-comment-character
+	: delimited-comment-character *
 	;
 	
 delimited-comment-character
@@ -119,8 +117,7 @@ identifier-start-character
 	| '_'
 	;
 identifier-part-characters
-	: identifier-part-character
-	| identifier-part-characters   identifier-part-character
+	: identifier-part-character +
 	;
 identifier-part-character
 	: letter-character
@@ -176,8 +173,7 @@ decimal-integer-literal
 	: decimal-digits   integer-type-suffix?
 	;
 decimal-digits
-	: decimal-digit
-	| decimal-digits   decimal-digit
+	: decimal-digit +
 	;
 decimal-digit
 	: '0123456789'
@@ -191,8 +187,7 @@ hexadecimal-integer-literal
 	: '0' 'xX' hex-digits integer-type-suffix?
 	;
 hex-digits
-	: hex-digit
-	| hex-digits   hex-digit
+	: hex-digit +
 	;
 hex-digit
 	: '0123456789ABCDEFabcdef'
@@ -253,8 +248,7 @@ regular-string-literal
 	: '\"' regular-string-literal-characters? '\"'
 	;
 regular-string-literal-characters
-	: regular-string-literal-character
-	| regular-string-literal-characters   regular-string-literal-character
+	: regular-string-literal-character +
 	;
 regular-string-literal-character
 	: single-regular-string-literal-character
@@ -274,8 +268,7 @@ verbatim-string-literal
 	: "@\""   verbatim-string-literal-characters?   "\""
 	;
 verbatim-string-literal-characters
-	: verbatim-string-literal-character
-	| verbatim-string-literal-characters   verbatim-string-literal-character
+	: verbatim-string-literal-character +
 	;
 verbatim-string-literal-character
 	: single-verbatim-string-literal-character
@@ -364,8 +357,7 @@ conditional-section
 	| skipped-section
 	;
 skipped-section
-	: skipped-section-part
-	| skipped-section   skipped-section-part
+	: skipped-section-part +
 	;
 skipped-section-part
 	: skipped-characters* new-line
@@ -389,8 +381,7 @@ file-name
 	: '\"' file-name-characters '\"'
 	;
 file-name-characters
-	: file-name-character
-	| file-name-characters   file-name-character
+	: file-name-character +
 	;
 file-name-character
 	: '\"' !
